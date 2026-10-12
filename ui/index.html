@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S. // BYRON</title>
+    <style>
+        :root {
+            --hud-cyan: #00f3ff;
+            --hud-blue-glow: rgba(0, 243, 255, 0.4);
+            --hud-dim: rgba(0, 243, 255, 0.1);
+            --bg-deep: #010409;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 50% 50%, #031428 0%, #010409 100%);
+            color: var(--hud-cyan);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 25px;
+        }
+
+        /* Scanlines */
+        body::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--hud-cyan);
+            padding-bottom: 12px;
+            box-shadow: 0 0 25px var(--hud-blue-glow);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            letter-spacing: 5px;
+            text-shadow: 0 0 12px var(--hud-cyan);
+        }
+
+        .header-info {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        /* Reloj Resaltado y Grueso */
+        #clock {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px var(--hud-cyan);
+            background: rgba(0, 243, 255, 0.08);
+            padding: 4px 12px;
+            border: 1px solid var(--hud-cyan);
+            border-radius: 4px;
+        }
+
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 243, 255, 0.08);
+            padding: 6px 12px;
+            border: 1px solid var(--hud-cyan);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        /* Workspace Principal */
+        .hud-workspace {
+            position: relative;
+            flex: 1;
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Paneles Flotantes */
+        .floating-panel {
+            position: absolute;
+            background: rgba(1, 15, 30, 0.85);
+            border: 1px solid var(--hud-cyan);
+            border-radius: 6px;
+            padding: 12px 16px;
+            box-shadow: 0 0 15px var(--hud-blue-glow);
+            backdrop-filter: blur(5px);
+            font-size: 0.8rem;
+            width: 250px;
+            animation: float-panel 6s ease-in-out infinite alternate;
+        }
+
+        .panel-left-top { top: 8%; left: 4%; animation-delay: 0s; }
+        .panel-left-bot { bottom: 8%; left: 4%; animation-delay: 2s; }
+        .panel-right-top { top: 8%; right: 4%; animation-delay: 1s; }
+        .panel-right-bot { bottom: 8%; right: 4%; animation-delay: 3s; width: 290px; }
+
+        @keyframes float-panel {
+            0% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(-6px) translateX(3px); }
+            100% { transform: translateY(0px) translateX(0px); }
+        }
+
+        .floating-panel h3 {
+            font-size: 0.75rem;
+            border-bottom: 1px dashed var(--hud-cyan);
+            margin-bottom: 6px;
+            padding-bottom: 3px;
+            letter-spacing: 1px;
+        }
+
+        /* Núcleo Central con Órbitas */
+        .center-hud-core {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .stark-ring {
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            border: 2px dashed var(--hud-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: spin-clockwise 22s linear infinite;
+            box-shadow: 0 0 35px var(--hud-blue-glow);
+        }
+
+        .stark-ring-inner {
+            position: absolute;
+            width: 155px;
+            height: 155px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 243, 255, 0.4);
+            border-top: 2px solid var(--hud-cyan);
+            animation: spin-counter 12s linear infinite;
+        }
+
+        .electron-orbit {
+            position: absolute;
+            width: 190px;
+            height: 190px;
+            border-radius: 50%;
+            animation: spin-clockwise 6s linear infinite;
+        }
+        .electron-particle {
+            position: absolute;
+            top: -4px;
+            left: 90px;
+            width: 8px;
+            height: 8px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ffffff, 0 0 20px var(--hud-cyan);
+        }
+
+        .proton-orbit {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            animation: spin-counter 4s linear infinite;
+        }
+        .proton-particle {
+            position: absolute;
+            bottom: -3px;
+            left: 55px;
+            width: 6px;
+            height: 6px;
+            background: #00ffaa;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ffaa;
+        }
+
+        .floating-sphere {
+            width: 75px;
+            height: 75px;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, var(--hud-cyan) 40%, #002244 80%);
+            border-radius: 50%;
+            box-shadow: 0 0 25px var(--hud-cyan), inset 0 0 12px #ffffff;
+            animation: pulse-sphere 3s ease-in-out infinite alternate, float-sphere 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes spin-clockwise {
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes spin-counter {
+            100% { transform: rotate(-360deg); }
+        }
+        @keyframes pulse-sphere {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+        @keyframes float-sphere {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-8px); }
+        }
+
+        #status-display {
+            margin-top: 18px;
+            font-size: 0.95rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--hud-cyan);
+        }
+
+        /* Métricas */
+        .metric-row { margin-bottom: 6px; }
+        .metric-info { display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 2px; }
+        .bar-container { background: var(--hud-dim); height: 4px; border-radius: 2px; overflow: hidden; border: 1px solid rgba(0, 243, 255, 0.3); }
+        .bar-fill { background: linear-gradient(90deg, #0088ff, var(--hud-cyan)); height: 100%; width: 0%; box-shadow: 0 0 6px var(--hud-cyan); transition: width 0.4s ease; }
+
+        /* Registro Táctico */
+        .log-container { max-height: 90px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        .log-container::-webkit-scrollbar { width: 3px; }
+        .log-container::-webkit-scrollbar-thumb { background: var(--hud-cyan); }
+        .log-item { padding: 3px 5px; border-left: 2px solid var(--hud-cyan); background: rgba(0, 243, 255, 0.05); font-size: 0.7rem; }
+
+        /* Footer */
+        footer { display: flex; gap: 12px; z-index: 10; }
+        input[type="text"] {
+            flex: 1;
+            background: rgba(1, 15, 30, 0.85);
+            border: 1px solid var(--hud-cyan);
+            border-radius: 4px;
+            padding: 12px 16px;
+            color: var(--hud-cyan);
+            font-size: 1rem;
+            outline: none;
+            box-shadow: inset 0 0 10px var(--hud-dim);
+        }
+        input[type="text"]::placeholder { color: rgba(0, 243, 255, 0.3); }
+        button {
+            background: rgba(0, 243, 255, 0.15);
+            border: 1px solid var(--hud-cyan);
+            color: var(--hud-cyan);
+            padding: 0 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px var(--hud-dim);
+        }
+        button:hover {
+            background: var(--hud-cyan);
+            color: var(--bg-deep);
+            box-shadow: 0 0 20px var(--hud-cyan);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>J.A.R.V.I.S. // BYRON</h1>
+        <div class="header-info">
+            <div class="weather-widget">
+                <span id="weather-icon">🔄</span>
+                <span id="weather-desc">Batuco...</span>
+            </div>
+            <div id="clock">00:00:00</div>
+        </div>
+    </header>
+
+    <div class="hud-workspace">
+        <div class="floating-panel panel-left-top">
+            <h3>DIAGNÓSTICO SISTEMA</h3>
+            <div class="metric-row">
+                <div class="metric-info"><span>CPU LOAD</span><span id="cpu-txt">30%</span></div>
+                <div class="bar-container"><div class="bar-fill" id="cpu-bar" style="width: 30%;"></div></div>
+            </div>
+            <div class="metric-row">
+                <div class="metric-info"><span>RAM USAGE</span><span id="ram-txt">75%</span></div>
+                <div class="bar-container"><div class="bar-fill" id="ram-bar" style="width: 75%;"></div></div>
+            </div>
+        </div>
+
+        <div class="floating-panel panel-left-bot">
+            <h3>NÚCLEO IA // LOCAL</h3>
+            <div style="font-size: 0.7rem; color: #aaffff; line-height: 1.3;">
+                MODELO: Llama 3.2<br>
+                ESTADO: Activo y Estable<br>
+                VOZ: SAPI5 Microsoft Pablo
+            </div>
+        </div>
+
+        <!-- Núcleo con Anillos y Partículas -->
+        <div class="center-hud-core">
+            <div class="stark-ring">
+                <div class="electron-orbit"><div class="electron-particle"></div></div>
+                <div class="proton-orbit"><div class="proton-particle"></div></div>
+                <div class="stark-ring-inner"></div>
+                <div class="floating-sphere"></div>
+            </div>
+            <div id="status-display">SISTEMA EN ESPERA</div>
+        </div>
+
+        <div class="floating-panel panel-right-top">
+            <h3>SECTOR // UBICACIÓN</h3>
+            <div style="font-size: 0.7rem; color: #aaffff; line-height: 1.3;">
+                LUGAR: Batuco, Chile<br>
+                RED: Enlace Seguro<br>
+                SEGURIDAD: Óptima
+            </div>
+        </div>
+
+        <div class="floating-panel panel-right-bot">
+            <h3>REGISTRO TÁCTICO</h3>
+            <div class="log-container" id="log-box">
+                <div class="log-item">Sistemas en línea, señor.</div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <input type="text" id="user-input" placeholder="Ingrese orden para JARVIS..." autofocus>
+        <button onclick="sendText()">EJECUTAR</button>
+    </footer>
+
+    <script>
+        // Reloj dinámico
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+        }, 1000);
+
+        // Consultar Clima Real en Vivo para Batuco
+        function actualizarClimaReal() {
+            fetch('https://wttr.in/Batuco?format=j1')
+                .then(res => res.json())
+                .then(data => {
+                    const current = data.current_condition[0];
+                    const temp = current.temp_C;
+                    const desc = current.weatherDesc[0].value.toLowerCase();
+                    
+                    let emoji = "☀️";
+                    let textoClima = "Despejado";
+
+                    if (desc.includes("rain") || desc.includes("drizzle") || desc.includes("llovizna") || desc.includes("lluvia")) {
+                        emoji = "🌧️";
+                        textoClima = "Llovizna";
+                    } else if (desc.includes("cloud") || desc.includes("nublado")) {
+                        emoji = "⛅";
+                        textoClima = "Nublado";
+                    } else if (desc.includes("clear") || desc.includes("sun")) {
+                        emoji = "☀️";
+                        textoClima = "Soleado";
+                    } else {
+                        emoji = "🌥️";
+                        textoClima = "Parcial";
+                    }
+
+                    document.getElementById('weather-icon').innerText = emoji;
+                    document.getElementById('weather-desc').innerText = `Batuco ${temp}°C (${textoClima})`;
+                })
+                .catch(err => {
+                    document.getElementById('weather-icon').innerText = "🌡️";
+                    document.getElementById('weather-desc').innerText = "Batuco 14°C (Llovizna)";
+                });
+        }
+
+        // Actualizar al iniciar y cada 10 minutos
+        actualizarClimaReal();
+        setInterval(actualizarClimaReal, 600000);
+
+        // Telemetría simulada
+        setInterval(() => {
+            const cpu = Math.floor(Math.random() * 15) + 25;
+            const ram = Math.floor(Math.random() * 3) + 75;
+            document.getElementById('cpu-txt').innerText = cpu + '%';
+            document.getElementById('cpu-bar').style.width = cpu + '%';
+            document.getElementById('ram-txt').innerText = ram + '%';
+            document.getElementById('ram-bar').style.width = ram + '%';
+        }, 3000);
+
+        function sendText() {
+            const input = document.getElementById('user-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            addLog('Tú: ' + text);
+            input.value = '';
+
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({prompt: text})
+            })
+            .then(res => res.json())
+            .then(data => {
+                addLog('JARVIS: ' + data.response);
+            })
+            .catch(err => {
+                addLog('JARVIS: Error de enlace con el núcleo.');
+            });
+        }
+
+        document.getElementById('user-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendText();
+        });
+
+        function addLog(text) {
+            const box = document.getElementById('log-box');
+            const div = document.createElement('div');
+            div.className = 'log-item';
+            div.innerText = text;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        setInterval(() => {
+            fetch('/api/status')
+            .then(res => res.json())
+            .then(data => {
+                if(data.status) {
+                    document.getElementById('status-display').innerText = data.status;
+                }
+            }).catch(e => {});
+        }, 1000);
+    </script>
+</body>
+</html>
